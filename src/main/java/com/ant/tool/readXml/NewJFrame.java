@@ -7,12 +7,8 @@ import javax.swing.JButton;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JTextField;
 import javax.swing.ImageIcon;
-import java.awt.Panel;
-import java.awt.FlowLayout;
+import java.awt.*;
 import javax.swing.JEditorPane;
-import java.awt.Color;
-import java.awt.Font;
-
 
 
 /**
@@ -35,6 +31,7 @@ public class NewJFrame extends javax.swing.JFrame {
 
     @SuppressWarnings("unchecked")
     private void initComponents() {
+		
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         
@@ -172,9 +169,6 @@ public class NewJFrame extends javax.swing.JFrame {
         			.addContainerGap())
         );
         getContentPane().setLayout(layout);
-        
-        
-        
         
         pack();
     }
