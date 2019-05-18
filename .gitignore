@@ -1,6 +1,6 @@
 /target/*
 /.idea/*
 .settings/*
-readXml.iml
-.classpath
+/readXml.iml
+/.classpath
 .project

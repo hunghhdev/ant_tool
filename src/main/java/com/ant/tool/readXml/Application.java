@@ -127,6 +127,7 @@ public class Application extends JFrame {
 		JButton btnSelect = new JButton("Select...");
 		btnSelect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				btnReset.setEnabled(true);
 				JFileChooser fileDialog = new JFileChooser();
 				int returnVal = fileDialog.showSaveDialog(null);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -270,28 +271,34 @@ public class Application extends JFrame {
 		btnReset.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				btnSave.setEnabled(false);
-				btnSelect.setEnabled(true);
-				// cbbKey.removeAllItems();
-				Element docEl = document.getDocumentElement();
-				Node childNode = docEl.getFirstChild();
-				childNode = childNode.getNextSibling();
-				Element childElement = (Element) childNode;
-				lengthAttribute = childElement.getAttributes().getLength();
-				for (int i = 0; i < lengthAttribute; i++) {
-					cbbKey.removeItem(childElement.getAttributes().item(i).getNodeName());
+				try {
+
+					btnReset.setEnabled(false);
+					btnSave.setEnabled(false);
+					btnSelect.setEnabled(true);
+					Element docEl = document.getDocumentElement();
+					Node childNode = docEl.getFirstChild();
+					childNode = childNode.getNextSibling();
+					Element childElement = (Element) childNode;
+					lengthAttribute = childElement.getAttributes().getLength();
+					for (int i = 0; i < lengthAttribute; i++) {
+						cbbKey.removeItem(childElement.getAttributes().item(i).getNodeName());
+					}
+					panelSearch.updateUI();
+					txtValueSearch.setText(null);
+					panelAttribute.removeAll();
+					panelAttribute.revalidate();
+					panelAttribute.repaint();
+					lblMessage.setText(null);
+				} catch (Exception ex) {
+					// TODO: handle exception
+					ex.printStackTrace();
 				}
-				panelSearch.updateUI();
-				txtValueSearch.setText(null);
-				panelAttribute.removeAll();
-				panelAttribute.revalidate();
-				panelAttribute.repaint();
-				lblMessage.setText(null);
 
 			}
 		});
 		panelSearch.add(btnReset);
-
+		btnReset.setEnabled(false);
 		panelAttribute = new JPanel(new GridBagLayout());
 		contentPanel.add(panelAttribute, BorderLayout.CENTER);
 
