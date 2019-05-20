@@ -106,19 +106,21 @@ public class Application extends JFrame {
         contentPanel.add(lblMessage, BorderLayout.SOUTH);
 
         panelSearch = new JPanel();
-        contentPanel.add(panelSearch, BorderLayout.NORTH);
+     contentPanel.add(panelSearch, BorderLayout.NORTH);
 
         JButton btnSelect = new JButton("Select...");
         btnSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                btnReset.setEnabled(true);
+                
                 JFileChooser fileDialog = new JFileChooser();
                 int returnVal = fileDialog.showSaveDialog(null);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     file = fileDialog.getSelectedFile();
                     if (file.exists() && getFileExtension(file).equals(".xml")) {
                         try {
+                        	btnReset.setEnabled(true);
                             txtKey.setEnabled(true);
+                            txtKey.requestFocus();
                             document = parseXML(file.getPath());
                             document.getDocumentElement().normalize();
                             document.getDocumentElement();
@@ -131,6 +133,7 @@ public class Application extends JFrame {
                         lblMessage.setText("File extension invalid");
                     }
                 }
+
             }
         });
         panelSearch.add(btnSelect);
@@ -150,6 +153,7 @@ public class Application extends JFrame {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_TAB) {
                     if (!txtKey.getText().equals("")) {
                         txtValueSearch.setEnabled(true);
+                        txtValueSearch.requestFocus();
                         lblMessage.setText("key: " + txtKey.getText());
                     }
                 }
@@ -177,6 +181,7 @@ public class Application extends JFrame {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     btnSave.setEnabled(true);
                     btnSelect.setEnabled(false);
+                    btnReset.setEnabled(true); 
                     strChildKey = txtKey.getText();
                     strChildValue = txtValueSearch.getText();
                     try {
