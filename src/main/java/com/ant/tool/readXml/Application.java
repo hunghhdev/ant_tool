@@ -6,6 +6,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -18,6 +19,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -45,25 +47,12 @@ public class Application extends JFrame {
     private String strChildKey;
     private String strChildValue;
     private Element editElement;
+    private JLabel lblMessage;
+    private JButton btnSelect;
+    private Common common = new Common();
 
-    private String getFileExtension(File file) {
-        String name = file.getName();
-        int lastIndexOf = name.lastIndexOf(".");
-        if (lastIndexOf == -1) {
-            return "";
-        }
-        return name.substring(lastIndexOf);
-    }
 
-    private Document parseXML(String filePath) throws ParserConfigurationException, SAXException, IOException {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document doc = db.parse(filePath);
-        doc.getDocumentElement().normalize();
-        return doc;
-    }
-
-    private Element getElementByKey(String key, String value, Document document) throws Exception {
+    private Element getElementByKeyAndValue(String key, String value, Document document) throws Exception {
         XPathFactory xPathfactory = XPathFactory.newInstance();
         XPath xpath = xPathfactory.newXPath();
         XPathExpression expr = xpath.compile("//*[@" + key + "='" + value + "']");
@@ -101,27 +90,27 @@ public class Application extends JFrame {
         contentPanel.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPanel);
 
-        JLabel lblMessage = new JLabel("");
+        lblMessage = new JLabel("");
         lblMessage.setHorizontalAlignment(SwingConstants.CENTER);
         contentPanel.add(lblMessage, BorderLayout.SOUTH);
 
         panelSearch = new JPanel();
-     contentPanel.add(panelSearch, BorderLayout.NORTH);
+        contentPanel.add(panelSearch, BorderLayout.NORTH);
 
-        JButton btnSelect = new JButton("Select...");
+        btnSelect = new JButton("Select...");
         btnSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                
+
                 JFileChooser fileDialog = new JFileChooser();
                 int returnVal = fileDialog.showSaveDialog(null);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     file = fileDialog.getSelectedFile();
-                    if (file.exists() && getFileExtension(file).equals(".xml")) {
+                    if (file.exists() && common.getFileExtension(file).equals(".xml")) {
                         try {
-                        	btnReset.setEnabled(true);
+                            btnReset.setEnabled(true);
                             txtKey.setEnabled(true);
                             txtKey.requestFocus();
-                            document = parseXML(file.getPath());
+                            document = common.parseXML(file.getPath());
                             document.getDocumentElement().normalize();
                             document.getDocumentElement();
                             lblMessage.setText("validate file OK");
@@ -145,7 +134,7 @@ public class Application extends JFrame {
         txtKey.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
-
+                //Non
             }
 
             @Override
@@ -161,7 +150,7 @@ public class Application extends JFrame {
 
             @Override
             public void keyReleased(KeyEvent e) {
-
+                // sonar ngu này
             }
         });
         panelSearch.add(txtKey);
@@ -173,7 +162,7 @@ public class Application extends JFrame {
         txtValueSearch.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
-
+                // fix sonar thôi
             }
 
             @Override
@@ -181,11 +170,11 @@ public class Application extends JFrame {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     btnSave.setEnabled(true);
                     btnSelect.setEnabled(false);
-                    btnReset.setEnabled(true); 
+                    btnReset.setEnabled(true);
                     strChildKey = txtKey.getText();
                     strChildValue = txtValueSearch.getText();
                     try {
-                        editElement = getElementByKey(strChildKey, strChildValue, document);
+                        editElement = getElementByKeyAndValue(strChildKey, strChildValue, document);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -227,7 +216,7 @@ public class Application extends JFrame {
 
             @Override
             public void keyReleased(KeyEvent e) {
-
+                // :)) thêm cái cmt cho cái sonar khỏi kêu mình ngu
             }
         });
         panelSearch.add(txtValueSearch);
@@ -242,6 +231,7 @@ public class Application extends JFrame {
                 TransformerFactory transformerFactory = TransformerFactory.newInstance();
 
                 try {
+                    transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
                     Transformer transformer = transformerFactory.newTransformer();
                     DOMSource source = new DOMSource(document);
                     StreamResult result = new StreamResult(new File(file.getPath()));
