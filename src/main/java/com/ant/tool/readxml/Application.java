@@ -1,4 +1,4 @@
-package com.ant.tool.readXml;
+package com.ant.tool.readxml;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -7,9 +7,6 @@ import java.awt.GridBagLayout;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -24,11 +21,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import java.awt.event.*;
 import java.io.File;
-import java.io.IOException;
 
 public class Application extends JFrame {
 
@@ -83,7 +78,7 @@ public class Application extends JFrame {
     }
 
     public Application() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setBounds(100, 100, 600, 450);
         contentPanel = new JPanel();
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -254,11 +249,6 @@ public class Application extends JFrame {
                     btnReset.setEnabled(false);
                     btnSave.setEnabled(false);
                     btnSelect.setEnabled(true);
-                    Element docEl = document.getDocumentElement();
-                    Node childNode = docEl.getFirstChild();
-                    childNode = childNode.getNextSibling();
-                    Element childElement = (Element) childNode;
-                    lengthAttribute = childElement.getAttributes().getLength();
                     txtKey.setText("");
                     txtKey.setEnabled(false);
                     txtValueSearch.setText("");

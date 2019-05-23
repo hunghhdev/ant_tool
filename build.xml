@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="RatingEngine" default="compile" basedir=".">
+
+	<property name="JDK1.8.dir" location="C:/Program Files/Java/jdk1.8.0_201" />
+	<property name="javac1.8" location="${JDK1.8.dir}/bin/javac" />
+	<property name="store.jar.name" value="readxml"/>
+
+	<!-- Java sources -->
+	<property name="src.dir" location="src" />
+	
+	<!-- Java classes -->
+	<property name="build.dir" location="target/classes" />
+	
+	<!-- Output, Jar -->
+	<property name="dist.dir" location="dist" />
+
+	<property name="store.jar" value="${dist.dir}/${store.jar.name}.jar"/>
+
+
+	<!-- Libraries on which your code depends -->
+  	<path id="classpath.base">                                                                                                                           
+     	<fileset dir="target/dependency">
+         	<include name="**/*.jar" />                                                                                                          
+     	</fileset>                                                                                                                                 
+  	</path>
+
+	<target name="compile" description="compile the source ">
+		<javac encoding="UTF-8"
+			   executable="${javac1.8}"
+			   includeantruntime="false" 
+			   srcdir="${src.dir}" 
+			   destdir="${build.dir}" 
+			   includes="**/*.java"
+			   source="1.8">
+        	<classpath refid="classpath.base" />
+    	</javac>
+	</target>
+	<target name="clear" description="delete build/classes">
+		<echo message="cleaning" />
+		<delete>
+  			<fileset dir="${build.dir}/com"/>
+		</delete>
+	</target>
+	<target name="TimeStamp">
+		<tstamp>
+			<format property="current.time" pattern="MM/dd/yyyy hh:mm:ss aa" />
+		</tstamp>
+		<echo message="${message} ${current.time}" />
+	</target>
+
+	<target name="BuildJar" description="Create a jar for the RatingEngine Project">
+		<antcall target="TimeStamp">
+			<param name="message" value="AntBuild Started at" />
+		</antcall>
+		<echo message="Starting Build Jar Files....."/>
+
+		<jar destfile="${dist.dir}/temp_final.jar">
+			<!--<zipgroupfileset dir="dist" includes="*.jar"/>-->
+			<zipgroupfileset dir="E:/work/ANT/tool/ant_tool/target/dependency" includes="*.jar"/>
+			<manifest>
+				<attribute name="Main-Class" value="com.ant.tool.readxml.mainApplication"/>
+			</manifest>
+		</jar>
+
+		<zip destfile="${store.jar}">
+			<zipfileset src="${dist.dir}/temp_final.jar" />
+		</zip>
+		<delete file="${dist.dir}/temp_final.jar"/>
+
+		<antcall target="TimeStamp">
+			<param name="message" value="AntBuild Ended at" />
+		</antcall>
+
+	</target>
+</project>
+

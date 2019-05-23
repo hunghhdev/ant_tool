@@ -1,27 +1,30 @@
-package com.ant.tool.readXml;
+package com.ant.tool.readxml;
 
 import org.apache.poi.ss.usermodel.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
+import org.dom4j.Attribute;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.SAXReader;
+import org.dom4j.io.XMLWriter;
 
 import javax.swing.*;
-import javax.xml.XMLConstants;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class AutoTranslateCNtoVN {
 
-    private JFrame frame;
+    public JFrame frame;
     private JTextField txtAttributeName;
     private JTextField txtColChinese;
     private JTextField txtColVietnamese;
@@ -33,23 +36,33 @@ public class AutoTranslateCNtoVN {
     private Document document;
     private Common common;
     private JLabel lblMessage;
+    private JButton btnSelectExcel;
+    private JPanel panelNode;
+    private JEditorPane dtrpnHdsdChnFile;
 
-    private NodeList getElementByKey(String key) throws Exception {
-        XPathFactory xPathfactory = XPathFactory.newInstance();
-        XPath xpath = xPathfactory.newXPath();
-        XPathExpression expr = xpath.compile("//*/@" + key);
-        return (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+    private java.util.List<Element> getElementsByName(String name, Element parent, java.util.List<Element> elementList)
+    {
+        if (elementList == null)
+            elementList = new ArrayList<>();
+
+        for (Iterator i = parent.elementIterator(); i.hasNext(); ) {
+            Element current = (Element) i.next();
+            if (checkHasAttributeWithName(name,current))
+            {
+                elementList.add(current);
+            }
+
+            getElementsByName(name, current, elementList);
+        }
+        return elementList;
     }
 
-    private File getAndValidateFile() {
-        // true xml, false excel
-        File file = null;
-        JFileChooser fileDialog = new JFileChooser();
-        int returnVal = fileDialog.showSaveDialog(null);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            file = fileDialog.getSelectedFile();
+    private boolean checkHasAttributeWithName(String attName, Element element) {
+        List<Attribute> el = element.attributes();
+        for (Attribute attribute : el) {
+            if (attribute.getName().equals(attName)) return true;
         }
-        return file;
+        return false;
     }
 
     private boolean checkTextfield() {
@@ -84,7 +97,7 @@ public class AutoTranslateCNtoVN {
     private void initialize() {
         frame = new JFrame();
         frame.setBounds(100, 100, 600, 300);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         common = new Common();
         JPanel panel = new JPanel();
         frame.getContentPane().add(panel, BorderLayout.NORTH);
@@ -92,10 +105,10 @@ public class AutoTranslateCNtoVN {
         JButton btnSelectXml = new JButton("Select XML");
         panel.add(btnSelectXml);
 
-        JButton btnSelectExcel = new JButton("Select Excel");
+        btnSelectExcel = new JButton("Select Excel");
         btnSelectExcel.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                fileExcel = getAndValidateFile();
+                fileExcel = common.getAndValidateFile();
                 if (common.getFileExtension(fileExcel).equals(".xlsx")) {
                     try {
                         txtAttributeName.setEnabled(true);
@@ -196,10 +209,11 @@ public class AutoTranslateCNtoVN {
         btnConfirm = new JButton("Action");
         btnConfirm.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                try (Workbook workbook = WorkbookFactory.create(fileExcel)) {
-
+                FileOutputStream fos = null;
+                Workbook workbook = null;
+                try (FileInputStream excelFile = new FileInputStream(fileExcel)) {
+                    workbook = WorkbookFactory.create(excelFile);
                     Sheet sheet = workbook.getSheetAt(Integer.valueOf(txtSheetAt.getText()));
-                    DataFormatter dataFormatter = new DataFormatter();
                     int colChina = 0;
                     int colVietnam = 0;
                     // Chỗ này để lấy trị trí của các cột
@@ -210,28 +224,41 @@ public class AutoTranslateCNtoVN {
                             colVietnam = cell.getColumnIndex();
                     }
 
-                    NodeList nodeList = getElementByKey(txtAttributeName.getText());
-                    int length = nodeList.getLength();
-                    for (int i = 0; i < length; i++) {
-                        // Rồi chỗ này thì đọc code đi =))
+                    DataFormatter dataFormatter = new DataFormatter();
+                    List<Element> elementList = getElementsByName(txtAttributeName.getText(),document.getRootElement(),null);
+                    for (Element element : elementList){
                         for (Row row : sheet) {
-                            if (dataFormatter.formatCellValue(row.getCell(colChina)).equals(nodeList.item(i).getNodeValue())) {
-                                nodeList.item(i).setNodeValue(dataFormatter.formatCellValue(row.getCell(colVietnam)));
+                            if (dataFormatter.formatCellValue(row.getCell(colChina)).equals(element.attribute(txtAttributeName.getText()).getValue())) {
+                                element.attribute(txtAttributeName.getText()).setValue(dataFormatter.formatCellValue(row.getCell(colVietnam)));
                                 break;
                             }
                         }
                     }
-                    TransformerFactory transformerFactory = TransformerFactory.newInstance();
-                    transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-                    Transformer transformer = transformerFactory.newTransformer();
-                    DOMSource source = new DOMSource(document);
-                    StreamResult result = new StreamResult(fileXml);
-                    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                    transformer.transform(source, result);
+                    // Pretty print the document to System.out
+                    fos = new FileOutputStream(fileXml);
+                    OutputFormat format = OutputFormat.createPrettyPrint();
+                    XMLWriter writer;
+                    writer = new XMLWriter(fos, format );
+                    writer.write(document);
                     lblMessage.setText("XML file updated successfully");
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     lblMessage.setText("Error! Call dev now =))");
+                } finally {
+                    if (fos!=null){
+                        try {
+                            fos.close();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                    if (workbook!=null){
+                        try {
+                            workbook.close();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
                 }
             }
         });
@@ -243,21 +270,42 @@ public class AutoTranslateCNtoVN {
             public void actionPerformed(ActionEvent e) {
                 fileXml = null;
                 fileExcel = null;
+                lblMessage.setText("");
+                txtAttributeName.setText("");
+                txtAttributeName.setEnabled(false);
+                txtSheetAt.setText("");
+                txtSheetAt.setEnabled(false);
+                txtColChinese.setText("");
+                txtColChinese.setEnabled(false);
+                txtColVietnamese.setText("");
+                txtColVietnamese.setEnabled(false);
+                btnConfirm.setEnabled(false);
+                btnReset.setEnabled(false);
             }
         });
         btnReset.setEnabled(false);
         panel.add(btnReset);
 
-        lblMessage = new JLabel("lblMessage");
+        lblMessage = new JLabel("");
         lblMessage.setHorizontalAlignment(SwingConstants.CENTER);
         frame.getContentPane().add(lblMessage, BorderLayout.SOUTH);
+        
+        panelNode = new JPanel();
+        frame.getContentPane().add(panelNode, BorderLayout.CENTER);
+        
+        dtrpnHdsdChnFile = new JEditorPane();
+        dtrpnHdsdChnFile.setSize(200, 200);
+        dtrpnHdsdChnFile.setText("HDSD: ch\u1ECDn file xml tr\u01B0\u1EDBc, r\u1ED3i ch\u1ECDn file excel, \u00F4 t1 nh\u1EADp t\u00EAn attribute c\u1EA7n s\u1EEDa, \u00F4 2 nh\u1EADp v\u1ECB tr\u00ED c\u1EE7a sheet(0,1,2,..), \u00F4 3 nh\u1EADp c\u1ED9t ti\u1EBFng trung, \u00F4 4 nh\u1EADp c\u1ED9t ti\u1EBFng vi\u1EC7t, nh\u1EADp xong \u00F4 4 nh\u1EA5n Enter \u0111\u1EC3 hi\u1EC7n n\u00FAt action");
+        panelNode.add(dtrpnHdsdChnFile);
         btnSelectXml.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                fileXml = getAndValidateFile();
+                fileXml = common.getAndValidateFile();
                 if (fileXml != null && fileXml.exists() && common.getFileExtension(fileXml).equals(".xml")) {
                     try {
                         btnSelectExcel.setEnabled(true);
-                        document = common.parseXML(fileXml.getPath());
+
+                        SAXReader saxBuilder = new SAXReader();
+                        document = saxBuilder.read(fileXml);
                         lblMessage.setText("validate file xml OK");
                     } catch (Exception e) {
                         e.printStackTrace();

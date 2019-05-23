@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Class-Path: poi-4.1.0.jar commons-codec-1.12.jar commons-collections4-
+  4.3.jar commons-math3-3.6.1.jar poi-ooxml-4.1.0.jar poi-ooxml-schema
+ s -4.1.0.jar xmlbeans-3.1.0.jar commons-compress-1.18.jar curvesapi-1
+ .0 6.jar dom4j-2.1.1.jar
+Main-Class: com.ant.tool.readxml.mainApplication
+
