@@ -2,7 +2,6 @@ package com.ant.tool.readxml;
 
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -16,6 +15,7 @@ public class leuleu {
 
 	private JFrame frame;
 	private JTable table;
+
 
 	/**
 	 * Launch the application.
